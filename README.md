@@ -1,2 +1,2 @@
 # ReactRTChatRooms
-Project to start to learn React while also doing stuff with sockets
+Real-Time Chatrooms made using Node.JS, React (for client), PostgreSQL (for message cache), C++ (for socket server)
