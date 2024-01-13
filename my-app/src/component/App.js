@@ -1,17 +1,19 @@
 import React from "react";
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import LoginPanel from "./LoginPanel"
-import logo from '../logo.svg';
+import ChatRoom from "./ChatRoom";
+
 import './App.css';
 
 export default class App extends React.Component {
   render() {
     return (
-      <div className="component-app">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <LoginPanel/>
-        </header>
-      </div>
-    )
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={ <LoginPanel/> } />
+            <Route path="/chat" element={ <ChatRoom/> } />
+          </Routes>
+        </BrowserRouter>
+      )
   }
 };

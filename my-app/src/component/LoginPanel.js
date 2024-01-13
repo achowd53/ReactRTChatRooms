@@ -1,4 +1,6 @@
 import React from "react";
+import logo from '../logo.svg';
+import { Link } from 'react-router-dom'
 
 import "./LoginPanel.css";
 
@@ -21,19 +23,26 @@ export default class LoginPanel extends React.Component {
     handleSubmit(event) {
         event.preventDefault();
         if (this.state.user !== '' && this.state.serv !== '') {
-            alert('Form was submitted with ' + this.state.user + ' ' + this.state.serv);
+            alert('To,');
         }
     };
 
     render() {
         return (
-            <div className="component-login-panel">
-                <h2> Login to Chatroom </h2>
-                <form onSubmit={this.handleSubmit}>
-                    <input type="text" onChange={(e) => this.handleChange(e,"user")} value={this.state.user} placeholder="username" />
-                    <input type="text" onChange={(e) => this.handleChange(e,"serv")} value={this.state.serv} placeholder="server" />
-                    <button type="submit">Login</button>
-                </form>
+            <div className="component-app">
+                <header className="App-header">
+                    <img src={logo} className="App-logo" alt="logo" />
+                    <div className="component-login-panel">
+                        <h2> Login to Chatroom </h2>
+                        <form onSubmit={this.handleSubmit}>
+                            <input type="text" onChange={(e) => this.handleChange(e,"user")} value={this.state.user} placeholder="username" />
+                            <input type="text" onChange={(e) => this.handleChange(e,"serv")} value={this.state.serv} placeholder="server" />
+                            <Link to={`/chat?user=${this.state.user}&serv=${this.state.serv}`}>
+                                <button type="submit">Login</button>
+                            </Link>
+                        </form>
+                    </div>
+                </header>
             </div>
         );
     }
