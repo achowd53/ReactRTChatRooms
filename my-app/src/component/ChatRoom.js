@@ -13,10 +13,11 @@ export default class ChatRoom extends React.Component {
                        serv: this.serv, 
                        hist: [],
                        msg: '',
-                       socket: this.setupClient() };
+                       socket: io() };
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.generateHistory = this.generateHistory.bind(this);
+        this.setupClient();
     }
 
     setupClient() {
@@ -30,25 +31,26 @@ export default class ChatRoom extends React.Component {
         socket.on('data', (data) => {
             serverPort = data;
             console.log(`Client told to use port ${serverPort}`);
+            console.log('Client-Server handshake ended');
             socket.close();
-        });
-        console.log('Client-Server handshake ended');
 
-        // Setup socket for chat communication
-        socket = io.connect('http://localhost:'+serverPort, { transports : ['websocket', 'polling', 'flashsocket'] });
-        console.log('Client connected with server');
-        socket.on('data', (data) => {
-            console.log('Received message');
-            this.state.hist.push(data.split(' '));
+            // Setup socket for chat communication
+            socket = io.connect('http://localhost:'+serverPort, { transports : ['websocket', 'polling', 'flashsocket'] });
+            console.log('Client connected with server at port',serverPort);
+            socket.emit('uuid', `${this.user}`);
+            socket.on('data', (data) => {
+                console.log('Received message', data);
+                this.state.hist.push(data.split(','));
+                this.forceUpdate();
+            });
+            socket.on('error', (err) => {
+                console.log(err);
+            });
+            socket.on('disconnect', function() {
+                console.log('Client disconnected');
+            });
+            this.setState({ socket: socket });
         });
-        socket.on('error', (err) => {
-            console.log(err);
-        });
-        socket.on('end', function() {
-            console.log('Client disconnected');
-        });
-
-        return socket;
     };
 
     generateHistory() {
@@ -75,11 +77,21 @@ export default class ChatRoom extends React.Component {
         event.preventDefault();
         if (this.state.msg !== '') {
             var datetime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
-            console.log(`Send message ${[datetime, this.state.user, this.state.msg].join(' ')} to server`);
-            this.state.socket.emit('data', [datetime, this.state.user, this.state.msg].join(' '));
+            console.log(`Send message ${[datetime, this.state.user, this.state.msg].join(',')} to server`);
+            this.state.socket.emit('data', [datetime, this.state.user, this.state.msg].join(','));
             this.setState({ msg: '' });
         }
     };
+
+    componentDidMount() {
+        window.onbeforeunload = function() {
+           this.state.socket.close();
+        };
+    }
+    
+    componentWillUnmount() {
+        this.state.socket.close();
+    }
 
     render() {
         return (
