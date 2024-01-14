@@ -25,10 +25,11 @@ export default class ChatRoom extends React.Component {
         var serverPort = 28000;
         var socket = io.connect('http://localhost:28000', { transports : ['websocket', 'polling', 'flashsocket'] });
         console.log('Client handshake with login server');
-        socket.emit('data', `${this.user} ${this.serv}`);
+        socket.emit('data', `${this.serv}`);
 
-        // Server returns port number of correct server to call (28001-28065)
-        socket.on('data', (data) => {
+        // Server returns port number of correct server to call (28001-28065), as well as history
+        socket.on('data', (data, serverHistory) => {
+            console.log(data, serverHistory);
             serverPort = data;
             console.log(`Client told to use port ${serverPort}`);
             console.log('Client-Server handshake ended');
@@ -76,9 +77,8 @@ export default class ChatRoom extends React.Component {
     handleSubmit(event) {
         event.preventDefault();
         if (this.state.msg !== '') {
-            var datetime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
-            console.log(`Send message ${[datetime, this.state.user, this.state.msg].join(',')} to server`);
-            this.state.socket.emit('data', [datetime, this.state.user, this.state.msg].join(','));
+            console.log(`Send message ${[this.state.user, this.state.msg].join(',')} to server`);
+            this.state.socket.emit('data', [this.state.user, this.state.msg].join(','));
             this.setState({ msg: '' });
         }
     };

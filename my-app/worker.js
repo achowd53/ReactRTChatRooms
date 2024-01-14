@@ -1,6 +1,7 @@
 const { HashMap } = require("hashmap");
 const { Server } = require("socket.io");
 const { parentPort, workerData } = require('worker_threads');
+const axios = require("axios");
 
 var users = new HashMap();
 var sockets = new HashMap();
@@ -20,8 +21,20 @@ io.on("connection", (socket) => {
     });
     socket.on('data', (data) => {
         console.log("Received message from clients", data);
+        var datetime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        const [username, message] = data.split(',');
+        axios({
+            method: 'post',
+            url: 'http://localhost:4000/api/addServerHistory', 
+            data: {
+                server: workerData.server, 
+                username: username, 
+                datetime: datetime, 
+                message: message
+            }
+        });
         users.values().forEach((sock) => {
-            sock.emit("data", data);
+            sock.emit("data", datetime+','+data);
         });
     });
     socket.on('error', (err) => {
