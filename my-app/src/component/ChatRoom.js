@@ -7,45 +7,48 @@ export default class ChatRoom extends React.Component {
     constructor(props) {
         super(props);
         const queryParameters = new URLSearchParams(window.location.search)
-        this.state = { user: queryParameters.get("user"), 
-                       serv: queryParameters.get("serv"), 
+        this.user = queryParameters.get("user");
+        this.serv = queryParameters.get("serv");
+        this.state = { user: this.user, 
+                       serv: this.serv, 
                        hist: [],
                        msg: '',
-                       socket: io() };
+                       socket: this.setupClient() };
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.generateHistory = this.generateHistory.bind(this);
-        this.setupClient();
     }
 
     setupClient() {
         // Initial handshake with login server 28000 to confirm identity of client
         var serverPort = 28000;
-        var socket = io('http://localhost:28000');
-        socket.on('connection', function() {
-            console.log('Client handshake with login server');
-            socket.emit('connection', `${this.state.user} ${this.state.serv}`);
-        });
+        var socket = io.connect('http://localhost:28000', { transports : ['websocket', 'polling', 'flashsocket'] });
+        console.log('Client handshake with login server');
+        socket.emit('data', `${this.user} ${this.serv}`);
 
         // Server returns port number of correct server to call (28001-28065)
         socket.on('data', (data) => {
             serverPort = data;
+            console.log(`Client told to use port ${serverPort}`);
             socket.close();
         });
+        console.log('Client-Server handshake ended');
 
         // Setup socket for chat communication
-        this.setState({ socket: io('http://localhost:'+serverPort) });
-        this.state.socket.on('data', (data) => {
+        socket = io.connect('http://localhost:'+serverPort, { transports : ['websocket', 'polling', 'flashsocket'] });
+        console.log('Client connected with server');
+        socket.on('data', (data) => {
             console.log('Received message');
             this.state.hist.push(data.split(' '));
         });
-        this.state.socket.on('error', (err) => {
+        socket.on('error', (err) => {
             console.log(err);
         });
-        this.state.socket.on('end', function() {
+        socket.on('end', function() {
             console.log('Client disconnected');
         });
 
+        return socket;
     };
 
     generateHistory() {
