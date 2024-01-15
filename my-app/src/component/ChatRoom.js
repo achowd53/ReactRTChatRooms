@@ -29,7 +29,15 @@ export default class ChatRoom extends React.Component {
 
         // Server returns port number of correct server to call (28001-28065), as well as history
         socket.on('data', (data, serverHistory) => {
-            console.log(data, serverHistory);
+
+            // Change history state based on input
+            for (var i = 0; i < serverHistory.length; i++) {
+                serverHistory[i] = [serverHistory[i].datetime, serverHistory[i].username, serverHistory[i].message];
+            }
+            this.setState({ hist: serverHistory });
+            //console.log(Object.values(serverHistory).foreach((entry) => [entry.datetime, entry.username, entry.message]));
+
+            // Get server port
             serverPort = data;
             console.log(`Client told to use port ${serverPort}`);
             console.log('Client-Server handshake ended');

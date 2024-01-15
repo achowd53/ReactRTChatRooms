@@ -3,12 +3,12 @@ const { Server } = require("socket.io");
 const { Worker, workerData } = require("worker_threads");
 
 const axios = require("axios");
-async function getServerHistory(server) {
+async function sendServerInfo(server, port, socket) {
     await axios({
             method: 'get',
             url: 'http://localhost:4000/api/getServerHistory?server='+server
         }).then((ret) => {
-            return ret.data;
+            socket.emit("data", port, ret.data);
         });
 };
 
@@ -39,10 +39,6 @@ io.on("connection", (socket) => {
            }
         }
         console.log("Server", server_name, "listening on port", server_to_port.get(server_name)+28001);
-        getServerHistory(server_name)
-            .then((serverHistory) => {
-                console.log(serverHistory);
-                socket.emit("data", server_to_port.get(server_name)+28001, serverHistory);
-            });
+        sendServerInfo(server_name, server_to_port.get(server_name)+28001, socket);
     });
 });
